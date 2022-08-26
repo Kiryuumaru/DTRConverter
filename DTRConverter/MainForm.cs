@@ -83,6 +83,9 @@ namespace DTRConverter
 
         private async void ButtonConvert_Click(object sender, EventArgs e)
         {
+            buttonBrowse.Enabled = false;
+            buttonConvert.Enabled = false;
+            panelDragFile.Enabled = false;
             await Task.Run(delegate
             {
                 try
@@ -532,7 +535,7 @@ namespace DTRConverter
 
                             document.Protect(ProtectionType.AllowOnlyReading, "PBCCAdmin");
 
-                            string employeeDtrFileName = $"{Path.Combine(directory, employeeDtr.Name.Replace(".", "").Replace(" ", "_"))}.doc";
+                            string employeeDtrFileName = $"{Path.Combine(directory, employeeDtr.Name.Replace(".", ""))} ({monthName} 1-{lastDayInMonth}).doc";
                             document.Save(employeeDtrFileName);
 
                             int progress = (int)(((index + 1) / (double)employeeDtrs.Count) * (100 - 30));
@@ -561,6 +564,9 @@ namespace DTRConverter
                     });
                 }
             });
+            buttonBrowse.Enabled = true;
+            buttonConvert.Enabled = true;
+            panelDragFile.Enabled = true;
         }
 
         private void Reset()
