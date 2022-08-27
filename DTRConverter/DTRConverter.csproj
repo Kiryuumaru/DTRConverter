@@ -11,7 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="template.doc" />
+    <None Remove="template1.doc" />
+    <None Remove="template2.doc" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="template.doc" />
+    <EmbeddedResource Include="template2.doc" />
+    <EmbeddedResource Include="template1.doc" />
   </ItemGroup>
 
   <ItemGroup>

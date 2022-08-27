@@ -409,8 +409,10 @@ namespace DTRConverter
                     });
 
                     var assembly = Assembly.GetExecutingAssembly();
-                    string resourceName = assembly.GetManifestResourceNames()
-                        .Single(str => str.EndsWith("template.doc"));
+                    string resourceName1 = assembly.GetManifestResourceNames()
+                        .Single(str => str.EndsWith("template1.doc"));
+                    string resourceName2 = assembly.GetManifestResourceNames()
+                        .Single(str => str.EndsWith("template2.doc"));
 
                     Invoke(delegate
                     {
@@ -422,132 +424,144 @@ namespace DTRConverter
                         Directory.CreateDirectory(directory);
                     }
 
-                    using (Stream? templateStreamResource = assembly.GetManifestResourceStream(resourceName))
+                    Stream? templateStreamResource1 = assembly.GetManifestResourceStream(resourceName1);
+                    Stream? templateStreamResource2 = assembly.GetManifestResourceStream(resourceName2);
+
+                    WordDocument documentTemplate1 = new(templateStreamResource1);
+                    WordDocument documentTemplate2 = new(templateStreamResource2);
+                    int index = 0;
+                    foreach (var employeeDtr in employeeDtrs.Values)
                     {
-                        WordDocument documentTemplate = new(templateStreamResource);
-                        int index = 0;
-                        foreach (var employeeDtr in employeeDtrs.Values)
+                        WordDocument document;
+                        if (employeeDtr.Number == 054)
                         {
-                            WordDocument document = documentTemplate.Clone();
-
-                            var employeeNameCells = document.FindAll("{EmployeeName}", true, true);
-                            foreach (var c in employeeNameCells)
-                            {
-                                var cell = c.GetAsOneRange();
-                                cell.Text = employeeDtr.Name.ToUpperInvariant();
-                            }
-
-                            var dateTimeSpanCells = document.FindAll("{DateTimeSpan}", true, true);
-                            foreach (var c in dateTimeSpanCells)
-                            {
-                                var cell = c.GetAsOneRange();
-                                cell.Text = dateRange;
-                            }
-
-                            for (int i = 0; i < 31; i++)
-                            {
-                                PairedDtr? dtr = employeeDtr.PairedDtrs.FirstOrDefault(dtr => dtr.Day == (i + 1));
-                                var cells1 = document.FindAll("{" + (i + 1).ToString() + ",1}", true, true);
-                                var cells2 = document.FindAll("{" + (i + 1).ToString() + ",2}", true, true);
-                                var cells3 = document.FindAll("{" + (i + 1).ToString() + ",3}", true, true);
-                                var cells4 = document.FindAll("{" + (i + 1).ToString() + ",4}", true, true);
-                                var cells5 = document.FindAll("{" + (i + 1).ToString() + ",5}", true, true);
-                                var cells6 = document.FindAll("{" + (i + 1).ToString() + ",6}", true, true);
-                                foreach (var c in cells1)
-                                {
-                                    var cell = c.GetAsOneRange();
-                                    cell.CharacterFormat.FontSize = 10;
-                                    if (dtr != null && dtr.AMInDtr != null)
-                                    {
-                                        cell.Text = dtr.AMInDtr.DateTime.ToString("hh:mm");
-                                    }
-                                    else
-                                    {
-                                        cell.Text = "";
-                                    }
-                                }
-                                foreach (var c in cells2)
-                                {
-                                    var cell = c.GetAsOneRange();
-                                    cell.CharacterFormat.FontSize = 10;
-                                    if (dtr != null && dtr.AMOutDtr != null)
-                                    {
-                                        cell.Text = dtr.AMOutDtr.DateTime.ToString("hh:mm");
-                                    }
-                                    else
-                                    {
-                                        cell.Text = "";
-                                    }
-                                }
-                                foreach (var c in cells3)
-                                {
-                                    var cell = c.GetAsOneRange();
-                                    cell.CharacterFormat.FontSize = 10;
-                                    if (dtr != null && dtr.PMInDtr != null)
-                                    {
-                                        cell.Text = dtr.PMInDtr.DateTime.ToString("hh:mm");
-                                    }
-                                    else
-                                    {
-                                        cell.Text = "";
-                                    }
-                                }
-                                foreach (var c in cells4)
-                                {
-                                    var cell = c.GetAsOneRange();
-                                    cell.CharacterFormat.FontSize = 10;
-                                    if (dtr != null && dtr.PMOutDtr != null)
-                                    {
-                                        cell.Text = dtr.PMOutDtr.DateTime.ToString("hh:mm");
-                                    }
-                                    else
-                                    {
-                                        cell.Text = "";
-                                    }
-                                }
-                                foreach (var c in cells5)
-                                {
-                                    var cell = c.GetAsOneRange();
-                                    cell.CharacterFormat.FontSize = 10;
-                                    if (dtr != null)
-                                    {
-                                        cell.Text = "";
-                                    }
-                                    else
-                                    {
-                                        cell.Text = "";
-                                    }
-                                }
-                                foreach (var c in cells6)
-                                {
-                                    var cell = c.GetAsOneRange();
-                                    cell.CharacterFormat.FontSize = 10;
-                                    if (dtr != null)
-                                    {
-                                        cell.Text = "";
-                                    }
-                                    else
-                                    {
-                                        cell.Text = "";
-                                    }
-                                }
-                            }
-
-                            document.Protect(ProtectionType.AllowOnlyReading, "PBCCAdmin");
-
-                            string employeeDtrFileName = $"{Path.Combine(directory, employeeDtr.Name.Replace(".", ""))} ({monthName} 1-{lastDayInMonth}).doc";
-                            document.Save(employeeDtrFileName);
-
-                            int progress = (int)(((index + 1) / (double)employeeDtrs.Count) * (100 - 30));
-
-                            Invoke(delegate
-                            {
-                                progressBarConvert.Value = progress + 30;
-                            });
-
-                            index++;
+                            document = documentTemplate1.Clone();
                         }
+                        else
+                        {
+                            document = documentTemplate2.Clone();
+                        }
+
+                        var employeeNameCells = document.FindAll("{EmployeeName}", true, true);
+                        foreach (var c in employeeNameCells)
+                        {
+                            var cell = c.GetAsOneRange();
+                            cell.Text = employeeDtr.Name.ToUpperInvariant();
+                        }
+
+                        var dateTimeSpanCells = document.FindAll("{DateTimeSpan}", true, true);
+                        foreach (var c in dateTimeSpanCells)
+                        {
+                            var cell = c.GetAsOneRange();
+                            cell.Text = dateRange;
+                        }
+
+                        for (int i = 0; i < 31; i++)
+                        {
+                            PairedDtr? dtr = employeeDtr.PairedDtrs.FirstOrDefault(dtr => dtr.Day == (i + 1));
+                            var cells1 = document.FindAll("{" + (i + 1).ToString() + ",1}", true, true);
+                            var cells2 = document.FindAll("{" + (i + 1).ToString() + ",2}", true, true);
+                            var cells3 = document.FindAll("{" + (i + 1).ToString() + ",3}", true, true);
+                            var cells4 = document.FindAll("{" + (i + 1).ToString() + ",4}", true, true);
+                            var cells5 = document.FindAll("{" + (i + 1).ToString() + ",5}", true, true);
+                            var cells6 = document.FindAll("{" + (i + 1).ToString() + ",6}", true, true);
+                            foreach (var c in cells1)
+                            {
+                                var cell = c.GetAsOneRange();
+                                cell.CharacterFormat.FontSize = 10;
+                                if (dtr != null && dtr.AMInDtr != null)
+                                {
+                                    cell.Text = dtr.AMInDtr.DateTime.ToString("hh:mm");
+                                }
+                                else
+                                {
+                                    cell.Text = "";
+                                }
+                            }
+                            foreach (var c in cells2)
+                            {
+                                var cell = c.GetAsOneRange();
+                                cell.CharacterFormat.FontSize = 10;
+                                if (dtr != null && dtr.AMOutDtr != null)
+                                {
+                                    cell.Text = dtr.AMOutDtr.DateTime.ToString("hh:mm");
+                                }
+                                else
+                                {
+                                    cell.Text = "";
+                                }
+                            }
+                            foreach (var c in cells3)
+                            {
+                                var cell = c.GetAsOneRange();
+                                cell.CharacterFormat.FontSize = 10;
+                                if (dtr != null && dtr.PMInDtr != null)
+                                {
+                                    cell.Text = dtr.PMInDtr.DateTime.ToString("hh:mm");
+                                }
+                                else
+                                {
+                                    cell.Text = "";
+                                }
+                            }
+                            foreach (var c in cells4)
+                            {
+                                var cell = c.GetAsOneRange();
+                                cell.CharacterFormat.FontSize = 10;
+                                if (dtr != null && dtr.PMOutDtr != null)
+                                {
+                                    cell.Text = dtr.PMOutDtr.DateTime.ToString("hh:mm");
+                                }
+                                else
+                                {
+                                    cell.Text = "";
+                                }
+                            }
+                            foreach (var c in cells5)
+                            {
+                                var cell = c.GetAsOneRange();
+                                cell.CharacterFormat.FontSize = 10;
+                                if (dtr != null)
+                                {
+                                    cell.Text = "";
+                                }
+                                else
+                                {
+                                    cell.Text = "";
+                                }
+                            }
+                            foreach (var c in cells6)
+                            {
+                                var cell = c.GetAsOneRange();
+                                cell.CharacterFormat.FontSize = 10;
+                                if (dtr != null)
+                                {
+                                    cell.Text = "";
+                                }
+                                else
+                                {
+                                    cell.Text = "";
+                                }
+                            }
+                        }
+
+                        document.Protect(ProtectionType.AllowOnlyReading, "PBCCAdmin");
+
+                        string employeeDtrFileName = $"{Path.Combine(directory, employeeDtr.Name.Replace(".", ""))} ({monthName} 1-{lastDayInMonth}).doc";
+                        document.Save(employeeDtrFileName);
+
+                        int progress = (int)(((index + 1) / (double)employeeDtrs.Count) * (100 - 30));
+
+                        Invoke(delegate
+                        {
+                            progressBarConvert.Value = progress + 30;
+                        });
+
+                        index++;
                     }
+
+                    templateStreamResource1?.Close();
+                    templateStreamResource2?.Close();
 
                     Invoke(delegate
                     {
