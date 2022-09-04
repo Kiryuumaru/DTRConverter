@@ -164,6 +164,8 @@ namespace DTRConverter
                     Dictionary<int, EmployeeDtr> employeeDtrs = new();
                     Dictionary<int, int> monthsCount = new();
                     Dictionary<int, int> yearsCount = new();
+                    int firstDayInMonth = 0;
+                    int lastDayInMonth = 0;
 
                     bool isFirstIteration = true;
 
@@ -287,6 +289,16 @@ namespace DTRConverter
                         {
                             monthsCount[dateTime.Month] = monthsCount[dateTime.Month] + 1;
                         }
+
+                        if (firstDayInMonth == 0 || firstDayInMonth > dateTime.Day)
+                        {
+                            firstDayInMonth = dateTime.Day;
+                        }
+
+                        if (lastDayInMonth == 0 || lastDayInMonth < dateTime.Day)
+                        {
+                            lastDayInMonth = dateTime.Day;
+                        }
                     }
 
                     if (!yearsCount.Any() || !monthsCount.Any())
@@ -398,10 +410,8 @@ namespace DTRConverter
                             employeeDtr.PairedDtrs.Add(pairedDtr);
                         }
                     }
-
-                    int lastDayInMonth = DateTime.DaysInMonth(year, month);
                     string monthName = (new DateTime(year, month, 1)).ToString("MMMM");
-                    string dateRange = $"{monthName} 1 - {lastDayInMonth}, {year}";
+                    string dateRange = $"{monthName} {firstDayInMonth} - {lastDayInMonth}, {year}";
 
                     Invoke(delegate
                     {
