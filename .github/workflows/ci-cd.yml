@@ -55,7 +55,7 @@ jobs:
       - name: Build project
         run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
       - name: Pack project
-        run: dotnet publish ${{ env.PROJECT_PATH }} /p:PublishProfile=FolderProfile.pubxml --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+        run: dotnet publish ${{ env.PROJECT_PATH }} /p:Configuration=Release /p:Platform="Any CPU" /p:PublishProtocol=FileSystem /p:_TargetId=Folder /p:TargetFramework=net6.0-windows /p:RuntimeIdentifier=win-x86 /p:SelfContained=true /p:PublishSingleFile=true /p:PublishReadyToRun=false --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
