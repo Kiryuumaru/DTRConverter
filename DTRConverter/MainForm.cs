@@ -339,71 +339,32 @@ namespace DTRConverter
                         var perDay = employeeDtr.Dtrs.GroupBy(i => (i.DateTime.Year, i.DateTime.Month, i.DateTime.Day));
                         foreach (var day in perDay)
                         {
+                            if (day.Key.Day == 14)
+                            {
+
+                            }
+
+                            // Within time
                             Dtr? amIn = day
                                 .Where(i => i.DateTime.Hour < 12)
                                 .MinBy(i => i.DateTime);
                             Dtr? pmOut = day
                                 .Where(i => i.DateTime.Hour > 12)
                                 .MaxBy(i => i.DateTime);
-
                             Dtr? amOut = day
                                 .Where(i => i.DateTime.Hour == 12)
                                 .MinBy(i => i.DateTime);
                             Dtr? pmIn = day
-                                .Where(i => i.DateTime.Hour == 12)
+                                .Where(i => i.DateTime.Hour == 12 && i != amOut)
                                 .MaxBy(i => i.DateTime);
 
-                            if (amOut == null)
-                            {
-                                if (amIn == null)
-                                {
-                                    amOut = day
-                                        .Where(i => i.DateTime.Hour < 12)
-                                        .MaxBy(i => i.DateTime);
-                                }
-                                else
-                                {
-                                    amOut = day
-                                        .Where(i => i.DateTime.Hour < 12 && !CheckDateDiff(i.DateTime, amIn.DateTime, TimeSpan.FromHours(1)))
-                                        .MaxBy(i => i.DateTime);
-                                }
-                            }
-                            if (pmIn == null)
-                            {
-                                if (pmOut == null)
-                                {
-                                    pmIn = day
-                                        .Where(i => i.DateTime.Hour > 12)
-                                        .MinBy(i => i.DateTime);
-                                }
-                                else
-                                {
-                                    pmIn = day
-                                        .Where(i => i.DateTime.Hour > 12 && !CheckDateDiff(i.DateTime, pmOut.DateTime, TimeSpan.FromHours(1)))
-                                        .MinBy(i => i.DateTime);
-                                }
-                            }
-
-                            if (amOut == pmIn && amOut != null && pmIn != null)
-                            {
-                                if (amIn != null && pmOut != null)
-                                {
-                                    //amOut = null;
-                                    //pmIn = null;
-                                }
-                                else if (amIn == null && pmOut != null)
-                                {
-                                    amOut = null;
-                                }
-                                else if (amIn != null && pmOut == null)
-                                {
-                                    pmIn = null;
-                                }
-                                else if (amIn == null && pmOut == null)
-                                {
-                                    //amOut = null;
-                                }
-                            }
+                            // Late/Early lunch break
+                            amOut ??= day
+                                    .Where(i => i.DateTime.Hour < 12 && (amIn == null || !CheckDateDiff(i.DateTime, amIn.DateTime, TimeSpan.FromHours(1))))
+                                    .MaxBy(i => i.DateTime);
+                            pmIn ??= day
+                                    .Where(i => i.DateTime.Hour > 12 && (pmOut == null || !CheckDateDiff(i.DateTime, pmOut.DateTime, TimeSpan.FromHours(1))))
+                                    .MinBy(i => i.DateTime);
 
                             PairedDtr pairedDtr = new(day.Key.Year, day.Key.Month, day.Key.Day, amIn, amOut, pmIn, pmOut);
 
