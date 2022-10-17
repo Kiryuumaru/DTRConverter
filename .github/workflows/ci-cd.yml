@@ -32,7 +32,7 @@ jobs:
     name: Publish
     needs: version_bumper
     if: needs.version_bumper.outputs.part != ''
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - name: Get Version
@@ -60,7 +60,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.ver }}
-          files: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*
+          files: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/DTRConverter.exe
           prerelease: ${{ steps.version.outputs.is-prerelease == true }}
           generate_release_notes: true
           draft: false
