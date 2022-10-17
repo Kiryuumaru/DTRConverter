@@ -371,6 +371,7 @@ namespace DTRConverter
                                 .Where(i => i.DateTime.Hour == 12)
                                 .MaxBy(i => i.DateTime);
 
+                            // Cleaups
                             if (amOut == pmIn && amOut != null && pmIn != null)
                             {
                                 if (amIn == null && pmOut != null)
