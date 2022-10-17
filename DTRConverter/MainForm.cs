@@ -339,6 +339,11 @@ namespace DTRConverter
                         var perDay = employeeDtr.Dtrs.GroupBy(i => (i.DateTime.Year, i.DateTime.Month, i.DateTime.Day));
                         foreach (var day in perDay)
                         {
+                            if (day.Key.Day == 14)
+                            {
+
+                            }
+
                             Dtr? amIn = day
                                 .Where(i => i.DateTime.Hour < 12)
                                 .MinBy(i => i.DateTime);
@@ -350,7 +355,7 @@ namespace DTRConverter
                                 .Where(i => i.DateTime.Hour == 12)
                                 .MinBy(i => i.DateTime);
                             Dtr? pmIn = day
-                                .Where(i => i.DateTime.Hour == 12)
+                                .Where(i => i.DateTime.Hour == 12 && i != amOut)
                                 .MaxBy(i => i.DateTime);
 
                             if (amOut == null)
