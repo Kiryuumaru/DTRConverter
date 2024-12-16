@@ -430,7 +430,6 @@ namespace DTRConverter
                         {
                             document = documentTemplate2.Clone();
                         }
-                        document = documentTemplate2.Clone();
 
                         var employeeNameCells = document.FindAll("{EmployeeName}", true, true);
                         foreach (var c in employeeNameCells)
