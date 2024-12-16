@@ -1,0 +1,155 @@
+name: Nuke CICD Pipeline
+on:
+  push:
+    branches:
+    - prerelease
+    - master
+    tags:
+    - bump-*
+  pull_request:
+    branches:
+    - '**'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  PRE_SETUP:
+    name: Pre Setup
+    runs-on:
+      labels: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+        submodules: recursive
+        persist-credentials: true
+    - id: NUKE_RUN
+      name: Run Nuke PipelinePreSetup
+      run: chmod +x ./build.sh && ./build.sh PipelinePreSetup
+    timeout-minutes: 30
+    outputs:
+      NUKE_PRE_SETUP: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP }}
+      NUKE_PRE_SETUP_OUTPUT_TEST_MATRIX: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_OUTPUT_TEST_MATRIX }}
+      NUKE_PRE_SETUP_OUTPUT_BUILD_MATRIX: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_OUTPUT_BUILD_MATRIX }}
+      NUKE_PRE_SETUP_OUTPUT_PUBLISH_MATRIX: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_OUTPUT_PUBLISH_MATRIX }}
+      NUKE_PRE_SETUP_BUILDBINARIES_CONDITION: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CONDITION }}
+      NUKE_PRE_SETUP_BUILDBINARIES_RUNS_ON: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_BUILDBINARIES_RUNS_ON }}
+      NUKE_PRE_SETUP_BUILDBINARIES_RUN_SCRIPT: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_BUILDBINARIES_RUN_SCRIPT }}
+      NUKE_PRE_SETUP_BUILDBINARIES_CACHE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CACHE_KEY }}
+      NUKE_PRE_SETUP_BUILDBINARIES_CACHE_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CACHE_RESTORE_KEY }}
+      NUKE_PRE_SETUP_BUILDBINARIES_CACHE_MAIN_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CACHE_MAIN_RESTORE_KEY }}
+      NUKE_PRE_SETUP_BUILDBINARIES_CHECKOUT_FETCH_DEPTH: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CHECKOUT_FETCH_DEPTH }}
+      NUKE_PRE_SETUP_BUILDBINARIES_CHECKOUT_FETCH_TAGS: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CHECKOUT_FETCH_TAGS }}
+      NUKE_PRE_SETUP_BUILDBINARIES_CHECKOUT_SUBMODULES: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CHECKOUT_SUBMODULES }}
+      NUKE_PRE_SETUP_PUBLISHASSETS_CONDITION: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CONDITION }}
+      NUKE_PRE_SETUP_PUBLISHASSETS_RUNS_ON: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_RUNS_ON }}
+      NUKE_PRE_SETUP_PUBLISHASSETS_RUN_SCRIPT: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_RUN_SCRIPT }}
+      NUKE_PRE_SETUP_PUBLISHASSETS_CACHE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CACHE_KEY }}
+      NUKE_PRE_SETUP_PUBLISHASSETS_CACHE_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CACHE_RESTORE_KEY }}
+      NUKE_PRE_SETUP_PUBLISHASSETS_CACHE_MAIN_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CACHE_MAIN_RESTORE_KEY }}
+      NUKE_PRE_SETUP_PUBLISHASSETS_CHECKOUT_FETCH_DEPTH: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CHECKOUT_FETCH_DEPTH }}
+      NUKE_PRE_SETUP_PUBLISHASSETS_CHECKOUT_FETCH_TAGS: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CHECKOUT_FETCH_TAGS }}
+      NUKE_PRE_SETUP_PUBLISHASSETS_CHECKOUT_SUBMODULES: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CHECKOUT_SUBMODULES }}
+  BUILDBINARIES:
+    name: Build - dtr_converter (BuildBinaries)
+    runs-on: ${{ fromJson(needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_BUILDBINARIES_RUNS_ON) }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CHECKOUT_FETCH_DEPTH }}
+        fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CHECKOUT_FETCH_TAGS }}
+        submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CHECKOUT_SUBMODULES }}
+        persist-credentials: true
+    - name: Cache Run
+      uses: actions/cache@v4
+      with:
+        path: ./.nuke/temp/cache
+        key: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CACHE_KEY }}
+        restore-keys: |-
+          ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CACHE_RESTORE_KEY }}
+          ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CACHE_MAIN_RESTORE_KEY }}
+    - id: NUKE_RUN
+      name: Run Nuke BuildBinaries
+      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_BUILDBINARIES_RUN_SCRIPT }} Run --args "BuildBinaries"
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build___dtr_converter___BUILDBINARIES
+        path: ./.nuke/temp/artifacts-upload/*
+        if-no-files-found: error
+        retention-days: 1
+    needs:
+    - PRE_SETUP
+    if: "! failure() && ! cancelled() && needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_BUILDBINARIES_CONDITION == 'true'"
+    env:
+      NUKE_PRE_SETUP: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP }}
+  PUBLISHASSETS:
+    name: Publish - dtr_converter (PublishAssets)
+    runs-on: ${{ fromJson(needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_RUNS_ON) }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CHECKOUT_FETCH_DEPTH }}
+        fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CHECKOUT_FETCH_TAGS }}
+        submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CHECKOUT_SUBMODULES }}
+        persist-credentials: true
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: build___dtr_converter___*
+    - name: Cache Run
+      uses: actions/cache@v4
+      with:
+        path: ./.nuke/temp/cache
+        key: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CACHE_KEY }}
+        restore-keys: |-
+          ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CACHE_RESTORE_KEY }}
+          ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CACHE_MAIN_RESTORE_KEY }}
+    - id: NUKE_RUN
+      name: Run Nuke PublishAssets
+      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_RUN_SCRIPT }} Run --args "PublishAssets"
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: publish___dtr_converter___PUBLISHASSETS
+        path: ./.nuke/temp/artifacts-upload/*
+        if-no-files-found: error
+        retention-days: 1
+    needs:
+    - PRE_SETUP
+    - BUILDBINARIES
+    if: "! failure() && ! cancelled() && needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_PUBLISHASSETS_CONDITION == 'true' && needs.BUILDBINARIES.result == 'success'"
+    env:
+      NUKE_PRE_SETUP: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP }}
+  POST_SETUP:
+    name: Post Setup
+    runs-on:
+      labels: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+        submodules: recursive
+        persist-credentials: true
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: publish___*
+    - name: Run Nuke PipelinePostSetup
+      run: chmod +x ./build.sh && ./build.sh PipelinePostSetup
+    needs:
+    - PRE_SETUP
+    - BUILDBINARIES
+    - PUBLISHASSETS
+    if: success() || failure() || always()
+    timeout-minutes: 30
+    env:
+      NUKE_PRE_SETUP: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP }}
+      NUKE_RUN_RESULT_GITHUB_BUILDBINARIES: ${{ needs.BUILDBINARIES.result }}
+      NUKE_RUN_RESULT_GITHUB_PUBLISHASSETS: ${{ needs.PUBLISHASSETS.result }}
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

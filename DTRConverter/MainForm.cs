@@ -422,7 +422,7 @@ namespace DTRConverter
                     foreach (var employeeDtr in employeeDtrs.Values)
                     {
                         WordDocument document;
-                        if (employeeDtr.Number == 054)
+                        if (employeeDtr.Number == 671)
                         {
                             document = documentTemplate1.Clone();
                         }
@@ -430,6 +430,7 @@ namespace DTRConverter
                         {
                             document = documentTemplate2.Clone();
                         }
+                        document = documentTemplate2.Clone();
 
                         var employeeNameCells = document.FindAll("{EmployeeName}", true, true);
                         foreach (var c in employeeNameCells)
