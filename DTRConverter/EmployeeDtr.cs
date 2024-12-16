@@ -20,7 +20,7 @@ public record EmployeeDtr
     {
         Number = number;
         Name = name;
-        Dtrs = new();
-        PairedDtrs = new();
+        Dtrs = [];
+        PairedDtrs = [];
     }
 }

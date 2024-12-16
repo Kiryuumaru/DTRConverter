@@ -51,7 +51,7 @@ namespace DTRConverter
             {
                 while (true)
                 {
-                    string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                    string[] files = e.Data.GetData(DataFormats.FileDrop) as string[] ?? [];
                     if (files.Length > 1)
                     {
                         MessageBox.Show("The program only accepts a single excel file.");
@@ -161,9 +161,9 @@ namespace DTRConverter
                         return;
                     }
 
-                    Dictionary<int, EmployeeDtr> employeeDtrs = new();
-                    Dictionary<int, int> monthsCount = new();
-                    Dictionary<int, int> yearsCount = new();
+                    Dictionary<int, EmployeeDtr> employeeDtrs = [];
+                    Dictionary<int, int> monthsCount = [];
+                    Dictionary<int, int> yearsCount = [];
                     int firstDayInMonth = 0;
                     int lastDayInMonth = 0;
 
@@ -273,21 +273,21 @@ namespace DTRConverter
 
                         employeeDtr.Dtrs.Add(dtr);
 
-                        if (!yearsCount.ContainsKey(dateTime.Year))
+                        if (!yearsCount.TryGetValue(dateTime.Year, out int valueYrs))
                         {
                             yearsCount.Add(dateTime.Year, 1);
                         }
                         else
                         {
-                            yearsCount[dateTime.Year] = yearsCount[dateTime.Year] + 1;
+                            yearsCount[dateTime.Year] = valueYrs + 1;
                         }
-                        if (!monthsCount.ContainsKey(dateTime.Month))
+                        if (!monthsCount.TryGetValue(dateTime.Month, out int valueMth))
                         {
                             monthsCount.Add(dateTime.Month, 1);
                         }
                         else
                         {
-                            monthsCount[dateTime.Month] = monthsCount[dateTime.Month] + 1;
+                            monthsCount[dateTime.Month] = valueMth + 1;
                         }
 
                         if (firstDayInMonth == 0 || firstDayInMonth > dateTime.Day)
@@ -301,7 +301,7 @@ namespace DTRConverter
                         }
                     }
 
-                    if (!yearsCount.Any() || !monthsCount.Any())
+                    if (yearsCount.Count == 0 || monthsCount.Count == 0)
                     {
                         Invoke(delegate
                         {

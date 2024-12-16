@@ -17,14 +17,8 @@ class Build : BaseNukeBuildHelpers
 
     public override string MainEnvironmentBranch => "master";
 
-    private readonly string gitRepoName = "DTRConverter";
-    private readonly string gitUsername = "Kiryuumaru";
-    private readonly string appId = "dtr_converter";
-    private readonly string executableName = "dtr_converter";
-    private readonly string assemblyName = "dtrc";
-
     public BuildEntry BuildBinaries => _ => _
-        .AppId(appId)
+        .AppId("dtr_converter")
         .RunnerOS(RunnerOS.Windows2022)
         .Execute(context =>
         {
@@ -56,7 +50,7 @@ class Build : BaseNukeBuildHelpers
         });
 
     public PublishEntry PublishAssets => _ => _
-        .AppId(appId)
+        .AppId("dtr_converter")
         .RunnerOS(RunnerOS.Ubuntu2204)
         .ReleaseAsset(OutputDirectory / "dtrc.exe");
 }
